@@ -9,21 +9,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sahmoudi.agile.user_service.auth.dto.RegisterRequest;
 import sahmoudi.agile.user_service.auth.exception.EmailAlreadyExistsException;
+import sahmoudi.agile.user_service.auth.exception.InvalidCredentialsException;
 import sahmoudi.agile.user_service.user.entity.User;
 import sahmoudi.agile.user_service.user.repository.UserRepository;
 
 @Service
-public class RegistrationService {
+public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final long expirationSeconds;
 
-    public RegistrationService(UserRepository userRepository,
-                               PasswordEncoder passwordEncoder,
-                               JwtService jwtService,
-                               @Value("${app.jwt.expiration-seconds:604800}") long expirationSeconds) {
+    public AuthService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder,
+                       JwtService jwtService,
+                       @Value("${app.jwt.expiration-seconds:604800}") long expirationSeconds) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
@@ -31,7 +32,7 @@ public class RegistrationService {
     }
 
     @Transactional
-    public RegistrationResult register(RegisterRequest request) {
+    public AuthResult register(RegisterRequest request) {
         if (userRepository.existsByEmailIgnoreCase(request.email())) {
             throw new EmailAlreadyExistsException(request.email());
         }
@@ -45,17 +46,28 @@ public class RegistrationService {
                 .build();
 
         User savedUser = userRepository.save(user);
-        String token = jwtService.generateAccessToken(savedUser);
+        return buildResult(savedUser);
+    }
+
+    @Transactional(readOnly = true)
+    public AuthResult login(String email, String password) {
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .filter(found -> passwordEncoder.matches(password, found.getPassword()))
+                .orElseThrow(InvalidCredentialsException::new);
+        return buildResult(user);
+    }
+
+    private AuthResult buildResult(User user) {
+        String token = jwtService.generateAccessToken(user);
         ResponseCookie cookie = ResponseCookie.from("accessToken", token)
                 .httpOnly(true)
-                .sameSite("Strict")
                 .path("/")
                 .maxAge(Duration.ofSeconds(expirationSeconds))
                 .build();
 
-        return new RegistrationResult(cookie, savedUser.getRole());
+        return new AuthResult(cookie, user.getRole());
     }
 
-    public record RegistrationResult(ResponseCookie cookie, sahmoudi.agile.user_service.user.entity.Role role) {
+    public record AuthResult(ResponseCookie cookie, sahmoudi.agile.user_service.user.entity.Role role) {
     }
 }
