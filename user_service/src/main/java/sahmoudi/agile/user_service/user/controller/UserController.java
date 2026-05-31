@@ -1,7 +1,6 @@
 package sahmoudi.agile.user_service.user.controller;
 
 import java.util.UUID;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import sahmoudi.agile.user_service.auth.service.JwtService;
 import sahmoudi.agile.user_service.user.dto.UserResponse;
 import sahmoudi.agile.user_service.user.service.UserService;
+import sahmoudi.agile.user_service.auth.exception.UnauthorizedTokenException;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -29,7 +29,7 @@ public class UserController {
             @CookieValue(name = "accessToken", required = false) String token
     ) {
         if (token == null || !jwtService.isTokenValid(token)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new UnauthorizedTokenException();
         }
         return ResponseEntity.ok(userService.getAuthenticatedUser(token));
     }
@@ -40,7 +40,7 @@ public class UserController {
             @CookieValue(name = "accessToken", required = false) String token
     ) {
         if (token == null || !jwtService.isTokenValid(token)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new UnauthorizedTokenException();
         }
         return ResponseEntity.ok(userService.getUserById(id));
     }
