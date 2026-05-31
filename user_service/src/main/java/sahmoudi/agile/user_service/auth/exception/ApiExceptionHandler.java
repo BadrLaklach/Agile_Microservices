@@ -48,4 +48,18 @@ public class ApiExceptionHandler {
     private String formatFieldError(FieldError error) {
         return error.getDefaultMessage();
     }
+
+    @ExceptionHandler(sahmoudi.agile.user_service.user.exception.UserNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleUserNotFound(sahmoudi.agile.user_service.user.exception.UserNotFoundException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("User not found");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
+    }
+
+    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ProblemDetail> handleTypeMismatch(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid UUID format: " + ex.getValue());
+        problemDetail.setTitle("Invalid path variable");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
 }

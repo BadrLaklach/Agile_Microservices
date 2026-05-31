@@ -39,7 +39,7 @@ Key application configurations can be adjusted inside the [application.propertie
 | `spring.datasource.url` | `jdbc:h2:mem:userdb;MODE=PostgreSQL...` | JDBC URL for the H2 in-memory DB. |
 | `spring.h2.console.path` | `/h2-console` | Context path for the web-based database UI. |
 | `app.jwt.secret` | `change-this-secret-to-32-chars-minimum` | HMAC-SHA signing secret for issuing JWTs. |
-| `app.jwt.expiration-seconds` | `604800` (7 days) | Validity duration for generated access tokens. |
+| `app.jwt.expiration-seconds` | `86400` (24 hours) | Validity duration for generated access tokens. |
 
 ---
 
@@ -78,8 +78,6 @@ The **default password** for all seeded accounts is **`password123`**.
 
 ## API Endpoints
 
-All API endpoints are prefixed with `/api/v1/auth`.
-
 ### 1. Register a New User
 
 - **Endpoint:** `POST /api/v1/auth/register`
@@ -108,7 +106,12 @@ All API endpoints are prefixed with `/api/v1/auth`.
 #### Response Body
 ```json
 {
-  "role": "DEV"
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "email": "john.doe@agile.local",
+  "firstName": "John",
+  "lastName": "Doe",
+  "role": "DEV",
+  "createdAt": "2025-01-01T00:00:00Z"
 }
 ```
 *Note: The `Set-Cookie` header will contain the HTTP-only `accessToken`.*
@@ -133,10 +136,59 @@ All API endpoints are prefixed with `/api/v1/auth`.
 #### Response Body
 ```json
 {
-  "role": "ADMIN"
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "email": "admin@agile.local",
+  "firstName": "Amina",
+  "lastName": "Haddad",
+  "role": "ADMIN",
+  "createdAt": "2025-01-01T00:00:00Z"
 }
 ```
 *Note: The `Set-Cookie` header will contain the HTTP-only `accessToken`.*
+
+---
+
+### 3. Get Current Authenticated User
+
+- **Endpoint:** `GET /api/v1/users/me`
+- **Description:** Returns the full profile of the currently authenticated user using their session cookie.
+- **Auth:** Requires valid `accessToken` cookie.
+- **Success Status:** `200 OK`
+- **Failure Status:** `401 Unauthorized` (Missing or invalid cookie)
+
+#### Response Body
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "email": "admin@agile.local",
+  "firstName": "Amina",
+  "lastName": "Haddad",
+  "role": "ADMIN",
+  "createdAt": "2025-01-01T00:00:00Z"
+}
+```
+
+---
+
+### 4. Get User Profile by ID
+
+- **Endpoint:** `GET /api/v1/users/{id}`
+- **Description:** Resolves a user's full profile by their UUID.
+- **Auth:** Requires valid `accessToken` cookie.
+- **Success Status:** `200 OK`
+- **Failure Status:** `400 Bad Request` (Invalid UUID format), `401 Unauthorized` (Missing or invalid cookie), or `404 Not Found` (User not found).
+
+#### Response Body
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "email": "john.doe@agile.local",
+  "firstName": "John",
+  "lastName": "Doe",
+  "role": "DEV",
+  "createdAt": "2025-01-01T00:00:00Z"
+}
+```
 
 ---
 

@@ -65,9 +65,9 @@ public class AuthService {
                 .maxAge(Duration.ofSeconds(expirationSeconds))
                 .build();
 
-        return new AuthResult(cookie, user.getRole());
+        return new AuthResult(cookie, user);
     }
 
-    public record AuthResult(ResponseCookie cookie, sahmoudi.agile.user_service.user.entity.Role role) {
+    public record AuthResult(ResponseCookie cookie, User user) {
     }
 }

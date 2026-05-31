@@ -1,0 +1,9 @@
+package sahmoudi.agile.user_service.user.exception;
+
+import java.util.UUID;
+
+public class UserNotFoundException extends RuntimeException {
+    public UserNotFoundException(UUID id) {
+        super("User not found with id: " + id);
+    }
+}
