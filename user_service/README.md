@@ -1,101 +1,128 @@
-# User Service
+# Agile User Service
 
-A Spring Boot microservice providing functionalities for user identity management, including user registration and authentication via JWT (JSON Web Token) issuance.
+A robust, enterprise-ready Spring Boot microservice designed for secure user identity management, registration, and authentication. It handles secure password hashing, issues standard JSON Web Tokens (JWT), and manages roles for access control within the Agile microservices ecosystem.
+
+---
+
+## Key Features
+
+- **Robust Authentication:** Seamless user registration and login endpoints.
+- **Enhanced Cookie-Based Security:** Authentication tokens are delivered strictly via secure, HTTP-only cookies (`Set-Cookie` header), protecting the client from Cross-Site Scripting (XSS) attacks.
+- **Role-Based Access Control:** Pre-configured roles (`ADMIN`, `DEV`, `PO`, `SM`, `MA`) to support diverse user permissions.
+- **In-Memory Storage & Seeding:** Utilizes H2 Database (configured with PostgreSQL compatibility) pre-seeded with multi-role test accounts.
+- **RFC 7807 Error Standards:** Consistent and descriptive error responses using Spring's native `ProblemDetail` specification.
+
+---
 
 ## Technical Stack
 
-This project is built using Java 21 and the Spring Boot framework. Key dependencies include:
+This project is built using modern Java standards and the Spring Boot framework:
 
+- **Java Version:** 21 (LTS)
 - **Spring Boot Version:** 4.0.6
-- **Java Version:** 21
-- **Web:** Spring Web MVC for creating RESTful APIs.
-- **Database:** Spring Data JPA with the H2 in-memory database.
-- **Security:** Spring Security for authentication and authorization, including password encoding.
-- **JWT:** `jjwt` library for handling JSON Web Tokens.
-- **Development:** Spring Boot DevTools, Lombok for reducing boilerplate code.
+- **Web MVC:** Spring Boot Web Starter for RESTful API routing and controllers.
+- **Data Persistence:** Spring Data JPA with the Hibernate ORM provider.
+- **Database:** In-memory H2 database (simulating a PostgreSQL environment).
+- **Security & Cryptography:** Spring Security Crypto module (`BCryptPasswordEncoder`) for password hashing.
+- **Token Management:** `jjwt` (Java JWT) library version `0.12.5` for parsing and signing tokens.
+- **Development Tooling:** Lombok for boilerplate reduction, and Spring Boot DevTools for rapid local iteration.
 
-## Getting Started
+---
 
-### Prerequisites
-- Java 21 or later
-- Maven
+## Configuration Reference
 
-### Running the Application
+Key application configurations can be adjusted inside the [application.properties](file:///home/eayzaid/Projects/Agile_Microservices/user_service/src/main/resources/application.properties) file:
 
-To run the service, execute the following command from the project's root directory:
+| Property Name | Default Value | Description |
+|---|---|---|
+| `server.port` | `8080` | Port on which the user service runs. |
+| `spring.datasource.url` | `jdbc:h2:mem:userdb;MODE=PostgreSQL...` | JDBC URL for the H2 in-memory DB. |
+| `spring.h2.console.path` | `/h2-console` | Context path for the web-based database UI. |
+| `app.jwt.secret` | `change-this-secret-to-32-chars-minimum` | HMAC-SHA signing secret for issuing JWTs. |
+| `app.jwt.expiration-seconds` | `604800` (7 days) | Validity duration for generated access tokens. |
 
-```zsh
-./mvnw spring-boot:run
-```
+---
 
-The application will start on the default port `8080`.
+## Database Architecture
 
-### Building the Application
+The persistence model is managed via standard DDL and initial seeds:
+- **Database Schema:** Defined in [schema.sql](file:///home/eayzaid/Projects/Agile_Microservices/user_service/src/main/resources/schema.sql). It creates the custom PostgreSQL enum type `role_enum` and the `users` table under `user_schema`.
+- **Database Console:** H2 Console is enabled by default at `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:mem:userdb`, User: `sa`, Password: `[blank]`).
 
-To build a JAR file of the application, run:
+### Pre-Seeded Test Accounts
 
-```zsh
-./mvnw clean install
-```
+The service comes pre-populated with default accounts configured with different system roles for convenient testing.
+The **default password** for all seeded accounts is **`password123`**.
+
+| Email | First Name | Last Name | Assigned Role |
+|---|---|---|---|
+| `admin@agile.local` | Amina | Haddad | `ADMIN` |
+| `po@agile.local` | Youssef | Bennani | `PO` (Product Owner) |
+| `sm@agile.local` | Salma | Khalid | `SM` (Scrum Master) |
+| `dev1@agile.local` | Omar | Fassi | `DEV` (Developer) |
+| `mgr@agile.local` | Nadia | El Amrani | `MA` (Manager) |
+
+---
+
+## Authentication & Token Transmission
+
+> [!IMPORTANT]
+> **Token Security Architecture**
+> To prevent Cross-Site Scripting (XSS) attacks, the **only** token issued by this service is an **Access Token** passed to the client via the `Set-Cookie` header.
+>
+> - The access token is **NOT** included in the JSON response body.
+> - The cookie is named `accessToken` and is explicitly configured with `HttpOnly` and `Path=/`.
+> - Browsers and HTTP clients must allow cookies to properly persist the session for downstream services.
+
+---
 
 ## API Endpoints
 
-All endpoints are prefixed with `/api/v1/auth`.
+All API endpoints are prefixed with `/api/v1/auth`.
 
-### Register a New User
+### 1. Register a New User
 
-- **Endpoint:** `POST /register`
-- **Description:** Creates a new user in the system.
-- **Success Response:** `201 Created`
-- **Failure Response:** `400 Bad Request` if validation fails.
+- **Endpoint:** `POST /api/v1/auth/register`
+- **Description:** Creates a new user with the specified role.
+- **Success Status:** `201 Created`
+- **Failure Status:** `400 Bad Request` (Validation errors) or `409 Conflict` (Email already registered)
 
 #### Request Body
-
-| Field       | Type   | Constraints                                       | Description                |
-|-------------|--------|---------------------------------------------------|----------------------------|
-| `email`     | String | Not Blank, Valid Email, Max 255 chars             | User's email address       |
-| `password`  | String | Not Blank, Min 8 chars, Max 255 chars             | User's password            |
-| `firstName` | String | Not Blank, Max 100 chars                          | User's first name          |
-| `lastName`  | String | Not Blank, Max 100 chars                          | User's last name           |
-| `role`      | String | Not Null, one of `ADMIN`, `DEV`, `PO`, `SM`, `MA` | User's role in the system  |
-
-**Example Request:**
 ```json
 {
-  "email": "new.user@agile.local",
-  "password": "password123",
-  "firstName": "New",
-  "lastName": "User",
+  "email": "john.doe@agile.local",
+  "password": "securePassword123",
+  "firstName": "John",
+  "lastName": "Doe",
   "role": "DEV"
 }
 ```
+
+#### Field Constraints
+- `email`: Not blank, must be a valid email format, max 255 characters.
+- `password`: Not blank, minimum 8 characters, max 255 characters.
+- `firstName`: Not blank, max 100 characters.
+- `lastName`: Not blank, max 100 characters.
+- `role`: Must be one of: `ADMIN`, `DEV`, `PO`, `SM`, `MA`.
 
 #### Response Body
-
-On successful registration, the response will be a JSON object containing the user's role, and a `Set-Cookie` header with the JWT.
-
-**Example Response:**
 ```json
 {
   "role": "DEV"
 }
 ```
+*Note: The `Set-Cookie` header will contain the HTTP-only `accessToken`.*
 
-### User Login
+---
 
-- **Endpoint:** `POST /login`
-- **Description:** Authenticates a user and returns a JWT upon successful login.
-- **Success Response:** `200 OK`
-- **Failure Response:** `400 Bad Request` if validation fails, `401 Unauthorized` for invalid credentials.
+### 2. User Login
+
+- **Endpoint:** `POST /api/v1/auth/login`
+- **Description:** Authenticates user credentials and initiates a secure session.
+- **Success Status:** `200 OK`
+- **Failure Status:** `401 Unauthorized` (Invalid email or password)
 
 #### Request Body
-
-| Field      | Type   | Constraints                               | Description          |
-|------------|--------|-------------------------------------------|----------------------|
-| `email`    | String | Not Blank, Valid Email, Max 255 chars     | User's email address |
-| `password` | String | Not Blank, Min 8 chars, Max 255 chars     | User's password      |
-
-**Example Request:**
 ```json
 {
   "email": "admin@agile.local",
@@ -104,12 +131,81 @@ On successful registration, the response will be a JSON object containing the us
 ```
 
 #### Response Body
-
-On successful login, the response will be a JSON object containing the user's role, and a `Set-Cookie` header with the JWT.
-
-**Example Response:**
 ```json
 {
   "role": "ADMIN"
 }
 ```
+*Note: The `Set-Cookie` header will contain the HTTP-only `accessToken`.*
+
+---
+
+## Error Handling Specification
+
+When errors occur, this service returns Standard RFC 7807 `ProblemDetail` structures.
+
+### Example: 400 Bad Request (Validation Failure)
+```json
+{
+  "type": "about:blank",
+  "title": "Constraint violation",
+  "status": 400,
+  "detail": "Validation failed",
+  "instance": "/api/v1/auth/register",
+  "errors": {
+    "password": "size must be between 8 and 255",
+    "email": "must be a well-formed email address"
+  }
+}
+```
+
+### Example: 401 Unauthorized (Invalid Credentials)
+```json
+{
+  "type": "about:blank",
+  "title": "Invalid credentials",
+  "status": 401,
+  "detail": "Invalid email or password",
+  "instance": "/api/v1/auth/login"
+}
+```
+
+### Example: 409 Conflict (Email Already Registered)
+```json
+{
+  "type": "about:blank",
+  "title": "Email already exists",
+  "status": 409,
+  "detail": "Email already registered: admin@agile.local",
+  "instance": "/api/v1/auth/register"
+}
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+- **Java:** JDK 21 or later
+- **Maven:** installed locally (or run via the included wrapper `mvnw`)
+
+### Running the Application Locally
+To launch the service in development mode, run the following maven command from the repository root:
+```bash
+./mvnw spring-boot:run
+```
+The application will boot on standard port `8080` (unless configured otherwise).
+
+### Building and Packaging
+To package the project into a runnable JAR file:
+```bash
+./mvnw clean package
+```
+The compiled output will be located in the `target/` directory.
+
+### Running Tests
+To run unit and integration tests:
+```bash
+./mvnw test
+```
+
