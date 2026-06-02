@@ -1,0 +1,36 @@
+server:
+  port: ${SERVER_PORT:8082}
+spring:
+  mvc:
+    problemdetails:
+      enabled: true
+  application:
+    name: project-management-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/agiledb}
+    username: ${DB_USERNAME:pm_service_role}
+    password: ${DB_PASSWORD:secret}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: pm_schema
+  sql:
+    init:
+      mode: always
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://mongodb:27017/agile_read}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+app:
+  user-service:
+    url: ${USER_SERVICE_URL:http://localhost:8080}
+  task-service:
+    url: ${TASK_SERVICE_URL:http://localhost:8083}
+  notification-service:
+    url: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}

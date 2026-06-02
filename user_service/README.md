@@ -9,7 +9,7 @@ A robust, enterprise-ready Spring Boot microservice designed for secure user ide
 - **Robust Authentication:** Seamless user registration and login endpoints.
 - **Enhanced Cookie-Based Security:** Authentication tokens are delivered strictly via secure, HTTP-only cookies (`Set-Cookie` header), protecting the client from Cross-Site Scripting (XSS) attacks.
 - **Role-Based Access Control:** Pre-configured roles (`ADMIN`, `DEV`, `PO`, `SM`, `MA`) to support diverse user permissions.
-- **In-Memory Storage & Seeding:** Utilizes H2 Database (configured with PostgreSQL compatibility) pre-seeded with multi-role test accounts.
+- **Storage & Seeding:** Utilizes PostgreSQL pre-seeded with multi-role test accounts.
 - **RFC 7807 Error Standards:** Consistent and descriptive error responses using Spring's native `ProblemDetail` specification.
 
 ---
@@ -22,7 +22,7 @@ This project is built using modern Java standards and the Spring Boot framework:
 - **Spring Boot Version:** 4.0.6
 - **Web MVC:** Spring Boot Web Starter for RESTful API routing and controllers.
 - **Data Persistence:** Spring Data JPA with the Hibernate ORM provider.
-- **Database:** In-memory H2 database (simulating a PostgreSQL environment).
+- **Database:** PostgreSQL database with isolated schema `user_schema`.
 - **Security & Cryptography:** Spring Security Crypto module (`BCryptPasswordEncoder`) for password hashing.
 - **Token Management:** `jjwt` (Java JWT) library version `0.12.5` for parsing and signing tokens.
 - **Development Tooling:** Lombok for boilerplate reduction, and Spring Boot DevTools for rapid local iteration.
@@ -36,8 +36,7 @@ Key application configurations can be adjusted inside the [application.propertie
 | Property Name | Default Value | Description |
 |---|---|---|
 | `server.port` | `8080` | Port on which the user service runs. |
-| `spring.datasource.url` | `jdbc:h2:mem:userdb;MODE=PostgreSQL...` | JDBC URL for the H2 in-memory DB. |
-| `spring.h2.console.path` | `/h2-console` | Context path for the web-based database UI. |
+| `spring.datasource.url` | `${DB_URL}` | JDBC URL for the PostgreSQL DB. |
 | `app.jwt.secret` | `change-this-secret-to-32-chars-minimum` | HMAC-SHA signing secret for issuing JWTs. |
 | `app.jwt.expiration-seconds` | `86400` (24 hours) | Validity duration for generated access tokens. |
 
@@ -47,7 +46,7 @@ Key application configurations can be adjusted inside the [application.propertie
 
 The persistence model is managed via standard DDL and initial seeds:
 - **Database Schema:** Defined in [schema.sql](file:///home/eayzaid/Projects/Agile_Microservices/user_service/src/main/resources/schema.sql). It creates the custom PostgreSQL enum type `role_enum` and the `users` table under `user_schema`.
-- **Database Console:** H2 Console is enabled by default at `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:mem:userdb`, User: `sa`, Password: `[blank]`).
+- **Database Access:** Use standard Postgres client to connect via JDBC URL using `user_service_role`.
 
 ### Pre-Seeded Test Accounts
 
@@ -177,6 +176,27 @@ The **default password** for all seeded accounts is **`password123`**.
 - **Auth:** Requires valid `accessToken` cookie.
 - **Success Status:** `200 OK`
 - **Failure Status:** `400 Bad Request` (Invalid UUID format), `401 Unauthorized` (Missing or invalid cookie), or `404 Not Found` (User not found).
+
+#### Response Body
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "email": "john.doe@agile.local",
+  "firstName": "John",
+  "lastName": "Doe",
+  "role": "DEV",
+  "createdAt": "2025-01-01T00:00:00Z"
+}
+```
+---
+
+### 5. Get User Profile by Email
+
+- **Endpoint:** `GET /api/v1/users/email/{email}`
+- **Description:** Resolves a user's full profile by their email address. Supports both cookie-based auth and header-based inter-service calls.
+- **Auth:** Requires valid `accessToken` cookie OR valid `X-User-Id` and `X-User-Role` headers.
+- **Success Status:** `200 OK`
+- **Failure Status:** `401 Unauthorized` (Missing or invalid auth), or `404 Not Found` (User not found).
 
 #### Response Body
 ```json

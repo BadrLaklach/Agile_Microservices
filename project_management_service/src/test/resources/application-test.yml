@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/agiledb_test
+    username: postgres
+    password: postgres
+  data:
+    mongodb:
+      uri: mongodb://localhost:27018/agile_read_test
+  rabbitmq:
+    host: localhost
+    port: 5673
+    username: guest
+    password: guest
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_schema: pm_schema
+  flyway:
+    enabled: false
+
+app:
+  task-service:
+    url: http://localhost:8089
+  notification-service:
+    url: http://localhost:8089
+  user-service:
+    url: http://localhost:8089

@@ -32,6 +32,12 @@ public class UserService {
         return mapToUserResponse(user);
     }
 
+    public UserResponse getUserByEmail(String email) {
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
+        return mapToUserResponse(user);
+    }
+
     private UserResponse mapToUserResponse(User user) {
         return new UserResponse(
                 user.getId(),
