@@ -1,0 +1,28 @@
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# Build artifacts
+target/
+*.class
+*.jar
+*.war
+*.ear
+build/
+
+# Logs and temps
+*.log
+*.bak
+*.tmp
+*.patch
+cp.txt
+cookies.txt
+*.sh
+
+# Antigravity CLI
+.antigravitycli/
+
+# OS generated files
+.DS_Store
+Thumbs.db
