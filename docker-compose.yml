@@ -1,0 +1,132 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: agiledb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+    - 5432:5432
+    volumes:
+    - postgres_data:/var/lib/postgresql/data
+    - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U postgres
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  mongodb:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_DATABASE: agile_read
+    ports:
+    - 27017:27017
+    volumes:
+    - mongo_data:/data/db
+    healthcheck:
+      test:
+      - CMD
+      - mongosh
+      - --eval
+      - db.adminCommand('ping')
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+    - 5672:5672
+    - 15672:15672
+    healthcheck:
+      test:
+      - CMD
+      - rabbitmq-diagnostics
+      - check_port_connectivity
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  user-service:
+    build:
+      context: ./user_service
+      dockerfile: Dockerfile
+    ports:
+    - 8081:8081
+    environment:
+      SERVER_PORT: 8081
+      DB_URL: jdbc:postgresql://postgres:5432/agiledb
+      DB_USERNAME: user_service_role
+      DB_PASSWORD: user_secret
+    depends_on:
+      postgres:
+        condition: service_healthy
+  pm-service:
+    build:
+      context: project_management_service
+      dockerfile: Dockerfile
+    ports:
+    - 8082:8082
+    environment:
+      SERVER_PORT: 8082
+      DB_URL: jdbc:postgresql://postgres:5432/agiledb
+      DB_USERNAME: pm_service_role
+      DB_PASSWORD: pm_secret
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      USER_SERVICE_URL: http://user-service:8081
+      TASK_SERVICE_URL: http://task-service:8083
+      NOTIFICATION_SERVICE_URL: http://notification-service:8084
+      MONGO_URI: mongodb://mongodb:27017/agile_read
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+  task-service:
+    build:
+      context: ./task_service
+      dockerfile: Dockerfile
+    ports:
+    - 8083:8083
+    environment:
+      SERVER_PORT: 8083
+      DB_URL: jdbc:postgresql://postgres:5432/agiledb
+      DB_USERNAME: task_service_role
+      DB_PASSWORD: secret
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      MONGO_URI: mongodb://mongodb:27017/agile_tasks
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+  api-gateway:
+    build:
+      context: ./api_gateway
+      dockerfile: Dockerfile
+    ports:
+    - 8080:8080
+    environment:
+      SERVER_PORT: 8080
+    depends_on:
+    - user-service
+    - pm-service
+    - task-service
+volumes:
+  postgres_data: null
+  mongo_data: null
