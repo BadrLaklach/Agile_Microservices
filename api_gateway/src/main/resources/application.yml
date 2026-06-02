@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: change-this-secret-to-32-chars-minimum
+
+spring:
+  application:
+    name: api-gateway
+  web:
+    problem-details:
+      enabled: true
+  cloud:
+    gateway:
+      routes:
+        - id: user-service-users
+          uri: http://user-service:8081
+          predicates:
+            - Path=/api/v1/users/**
+        - id: user-service-auth
+          uri: http://user-service:8081
+          predicates:
+            - Path=/api/v1/auth/**
+        - id: project-management-service
+          uri: http://pm-service:8082
+          predicates:
+            - Path=/api/v1/projects/**
+        - id: task-service
+          uri: http://task-service:8083
+          predicates:
+            - Path=/api/v1/tasks/**
+  webflux:
+    problemdetails:
+      enabled: true
