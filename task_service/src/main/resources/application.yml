@@ -16,7 +16,8 @@ spring:
         default_schema: task_schema
   data:
     mongodb:
-      uri: ${MONGO_URI:mongodb://mongodb:27017/agile_tasks}
+      uri: ${MONGO_URI:mongodb://mongodb:27017/agile_tasks?uuidRepresentation=STANDARD}
+      uuid-representation: standard
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5673}

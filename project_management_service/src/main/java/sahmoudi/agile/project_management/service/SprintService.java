@@ -12,12 +12,19 @@ import sahmoudi.agile.project_management.dto.response.SprintTaskResponse;
 import sahmoudi.agile.project_management.dto.response.TaskProjectionResponse;
 import sahmoudi.agile.project_management.exception.*;
 import sahmoudi.agile.project_management.model.*;
+import sahmoudi.agile.project_management.event.publisher.EventPublisher;
+import sahmoudi.agile.project_management.event.payload.RecipientDto;
+import sahmoudi.agile.project_management.event.payload.SprintOverloadEvent;
+import sahmoudi.agile.project_management.client.UserServiceClient;
+import sahmoudi.agile.project_management.dto.response.UserResponse;
+import lombok.extern.slf4j.Slf4j;
 import sahmoudi.agile.project_management.repository.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SprintService {
@@ -28,6 +35,8 @@ public class SprintService {
     private final SprintTaskRepository sprintTaskRepository;
     private final TaskProjectionRepository taskProjectionRepository;
     private final TaskServiceClient taskServiceClient;
+    private final UserServiceClient userServiceClient;
+    private final EventPublisher eventPublisher;
 
     private void requireRole(String callerRole, String... allowedRoles) {
         if (!Set.of(allowedRoles).contains(callerRole)) {
@@ -215,6 +224,12 @@ public class SprintService {
             .build();
         sprintTask = sprintTaskRepository.save(sprintTask);
 
+        try {
+            checkAndPublishSprintOverload(sprintId, projectId, sprint, callerId, callerRole);
+        } catch (Exception e) {
+            log.error("Failed to check sprint overload: {}", e.getMessage());
+        }
+
         return new SprintTaskResponse(request.taskId(), sprintId, sprintTask.getAssignedAt());
     }
 
@@ -273,5 +288,60 @@ public class SprintService {
             s.getStatus(), s.getCapacity(), s.getStartDate(), s.getEndDate(),
             s.getCreatedAt(), s.getUpdatedAt()
         );
+    }
+
+    private void checkAndPublishSprintOverload(UUID sprintId, UUID projectId,
+                                               Sprint sprint, UUID callerId,
+                                               String callerRole) {
+        // Sum all task estimates from MongoDB read model for this sprint
+        List<TaskProjection> sprintTasks = taskProjectionRepository.findBySprintId(sprintId.toString());
+
+        int totalLoad = sprintTasks.stream()
+            .mapToInt(t -> t.getEstimate() != null ? t.getEstimate() : 0)
+            .sum();
+
+        if (sprint.getCapacity() == null || sprint.getCapacity() <= 0) return;
+        if (totalLoad <= sprint.getCapacity()) return;
+
+        double loadRate = ((double) totalLoad / sprint.getCapacity()) * 100;
+
+        // Resolve SM and PO recipients
+        List<RecipientDto> recipients = resolveRecipients(
+            projectId, List.of("SM", "PO"), callerId, callerRole);
+
+        // Fetch project name
+        Project project = projectRepository.findById(projectId).orElseThrow();
+
+        eventPublisher.publishSprintOverloadAlert(new SprintOverloadEvent(
+            "SPRINT_OVERLOAD",
+            projectId, project.getName(),
+            sprintId,  sprint.getName(),
+            sprint.getCapacity(), totalLoad, loadRate,
+            recipients,
+            Instant.now()
+        ));
+    }
+
+    private List<RecipientDto> resolveRecipients(UUID projectId,
+                                                 List<String> roles,
+                                                 UUID callerId,
+                                                 String callerRole) {
+        List<RecipientDto> recipients = new ArrayList<>();
+
+        List<ProjectMember> members = memberRepository
+            .findAllByProjectIdAndRoleIn(projectId, roles);
+
+        for (ProjectMember member : members) {
+            try {
+                UserResponse user = userServiceClient.getUserById(
+                    member.getUserId(), callerId, callerRole);
+                recipients.add(new RecipientDto(
+                    member.getUserId(), user.email(), user.firstName()));
+            } catch (Exception e) {
+                log.warn("Could not resolve recipient {}: {}",
+                    member.getUserId(), e.getMessage());
+            }
+        }
+        return recipients;
     }
 }

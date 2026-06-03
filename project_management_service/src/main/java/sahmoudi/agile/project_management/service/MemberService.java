@@ -3,10 +3,8 @@ package sahmoudi.agile.project_management.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sahmoudi.agile.project_management.client.NotificationServiceClient;
 import sahmoudi.agile.project_management.client.UserServiceClient;
 import sahmoudi.agile.project_management.dto.request.InviteMemberRequest;
-import sahmoudi.agile.project_management.dto.request.NotificationRequest;
 import sahmoudi.agile.project_management.dto.response.MemberResponse;
 import sahmoudi.agile.project_management.dto.response.UserResponse;
 import sahmoudi.agile.project_management.exception.*;
@@ -25,7 +23,6 @@ public class MemberService {
     private final ProjectRepository projectRepository;
     private final ProjectMemberRepository memberRepository;
     private final UserServiceClient userServiceClient;
-    private final NotificationServiceClient notificationServiceClient;
     private final sahmoudi.agile.project_management.event.publisher.EventPublisher eventPublisher;
 
     private void requireRole(String callerRole, String... allowedRoles) {
@@ -83,13 +80,7 @@ public class MemberService {
             "MEMBER_INVITED", user.id(), projectId, request.role(), java.time.Instant.now()
         ));
 
-        // Fire-and-forget notification
-        notificationServiceClient.send(new NotificationRequest(
-            "MEMBER_INVITED",
-            user.id(),
-            projectId,
-            "You have been invited to a project"
-        ));
+
 
         return new MemberResponse(
             user.id(), user.email(), user.firstName(), user.lastName(),
