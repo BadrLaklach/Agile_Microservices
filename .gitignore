@@ -26,3 +26,6 @@ cookies.txt
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Ignore local docker-compose.yml with secrets
+docker-compose.yml

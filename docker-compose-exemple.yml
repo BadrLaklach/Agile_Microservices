@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: agiledb
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: your_postgres_password
     ports:
     - 5432:5432
     volumes:
@@ -60,7 +60,7 @@ services:
       SERVER_PORT: 8081
       DB_URL: jdbc:postgresql://postgres:5432/agiledb
       DB_USERNAME: user_service_role
-      DB_PASSWORD: user_secret
+      DB_PASSWORD: your_user_secret
     depends_on:
       postgres:
         condition: service_healthy
@@ -74,7 +74,7 @@ services:
       SERVER_PORT: 8082
       DB_URL: jdbc:postgresql://postgres:5432/agiledb
       DB_USERNAME: pm_service_role
-      DB_PASSWORD: pm_secret
+      DB_PASSWORD: your_pm_secret
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: guest
@@ -101,7 +101,7 @@ services:
       SERVER_PORT: 8083
       DB_URL: jdbc:postgresql://postgres:5432/agiledb
       DB_USERNAME: task_service_role
-      DB_PASSWORD: secret
+      DB_PASSWORD: your_task_secret
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: guest
@@ -128,11 +128,11 @@ services:
       RABBITMQ_PASSWORD: guest
       MAIL_HOST: smtp.gmail.com
       MAIL_PORT: 587
-      MAIL_USERNAME: "zaidaneayman738@gmail.com"
-      MAIL_PASSWORD: "xpox teeg cxkh fvja" # Use a 16-character Google App Password
+      MAIL_USERNAME: "your_email@gmail.com"
+      MAIL_PASSWORD: "your_16_character_app_password" # Use a 16-character Google App Password
     depends_on:
       rabbitmq:
-        condition: service_healthy
+        condition: service_healthcy
   api-gateway:
     build:
       context: ./api_gateway
