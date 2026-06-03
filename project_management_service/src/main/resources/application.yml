@@ -21,7 +21,8 @@ spring:
       mode: always
   data:
     mongodb:
-      uri: ${MONGO_URI:mongodb://mongodb:27017/agile_read}
+      uri: ${MONGO_URI:mongodb://mongodb:27017/agile_read?uuidRepresentation=STANDARD}
+      uuid-representation: standard
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
@@ -32,5 +33,4 @@ app:
     url: ${USER_SERVICE_URL:http://localhost:8080}
   task-service:
     url: ${TASK_SERVICE_URL:http://localhost:8083}
-  notification-service:
-    url: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
+

@@ -6,6 +6,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 import sahmoudi.agile.project_management.event.payload.MemberInvitedEvent;
 import sahmoudi.agile.project_management.event.payload.MemberRemovedEvent;
+import sahmoudi.agile.project_management.event.payload.SprintOverloadEvent;
+import sahmoudi.agile.project_management.event.payload.DeveloperOverloadEvent;
 
 @Component
 @RequiredArgsConstructor
@@ -21,6 +23,14 @@ public class EventPublisher {
 
     public void publishMemberRemoved(MemberRemovedEvent event) {
         send("member.removed", event);
+    }
+
+    public void publishSprintOverloadAlert(SprintOverloadEvent event) {
+        send("notification.sprint.overload", event);
+    }
+
+    public void publishDeveloperOverloadAlert(DeveloperOverloadEvent event) {
+        send("notification.developer.overload", event);
     }
 
     private void send(String routingKey, Object payload) {

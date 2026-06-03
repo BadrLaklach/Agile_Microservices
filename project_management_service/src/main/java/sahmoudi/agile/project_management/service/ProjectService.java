@@ -3,7 +3,6 @@ package sahmoudi.agile.project_management.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sahmoudi.agile.project_management.client.NotificationServiceClient;
 import sahmoudi.agile.project_management.client.UserServiceClient;
 import sahmoudi.agile.project_management.dto.request.*;
 import sahmoudi.agile.project_management.dto.response.*;
@@ -12,6 +11,8 @@ import sahmoudi.agile.project_management.model.Project;
 import sahmoudi.agile.project_management.model.ProjectMember;
 import sahmoudi.agile.project_management.repository.ProjectMemberRepository;
 import sahmoudi.agile.project_management.repository.ProjectRepository;
+import sahmoudi.agile.project_management.event.publisher.EventPublisher;
+import sahmoudi.agile.project_management.event.payload.MemberInvitedEvent;
 
 import java.time.Instant;
 import java.util.*;
@@ -23,6 +24,7 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectMemberRepository memberRepository;
+    private final EventPublisher eventPublisher;
 
     // Helper methods for authorization
     private void requireRole(String callerRole, String... allowedRoles) {
@@ -60,6 +62,14 @@ public class ProjectService {
             .role(callerRole)
             .build();
         memberRepository.save(member);
+
+        eventPublisher.publishMemberInvited(new MemberInvitedEvent(
+            "MEMBER_INVITED",
+            callerId,
+            project.getId(),
+            callerRole,
+            Instant.now()
+        ));
 
         return toResponse(project);
     }

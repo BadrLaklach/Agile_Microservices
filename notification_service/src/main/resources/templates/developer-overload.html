@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <style>
+    body { font-family: Arial, sans-serif; color: #333; }
+    .alert-box { background: #f8d7da; border: 1px solid #dc3545;
+                 padding: 16px; border-radius: 6px; }
+    .metric { font-size: 1.4em; font-weight: bold; color: #dc3545; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    td { padding: 8px; border-bottom: 1px solid #ddd; }
+    .label { color: #666; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <p>Hello <span th:text="${firstName}">User</span>,</p>
+
+  <div class="alert-box">
+    <strong>🚨 Developer Overload Detected</strong>
+    <p>
+      Developer <strong th:text="${developerFirstName} + ' ' + ${developerLastName}">
+        John Doe
+      </strong>
+      is overloaded in sprint <strong th:text="${sprintName}">Sprint X</strong>
+      of project <strong th:text="${projectName}">Project Y</strong>.
+    </p>
+    <p class="metric" th:text="${loadRate} + '% load rate'">115.0% load rate</p>
+  </div>
+
+  <table>
+    <tr>
+      <td class="label">Developer</td>
+      <td th:text="${developerFirstName} + ' ' + ${developerLastName}">John Doe</td>
+    </tr>
+    <tr>
+      <td class="label">Sprint</td>
+      <td th:text="${sprintName}">Sprint X</td>
+    </tr>
+    <tr>
+      <td class="label">Individual Capacity</td>
+      <td th:text="${developerCapacity} + ' hours'">40 hours</td>
+    </tr>
+    <tr>
+      <td class="label">Assigned Load</td>
+      <td th:text="${developerLoad} + ' hours'">46 hours</td>
+    </tr>
+    <tr>
+      <td class="label">Load Rate</td>
+      <td th:text="${loadRate} + '%'">115.0%</td>
+    </tr>
+  </table>
+
+  <p style="margin-top:16px; color:#666; font-size:0.85em;">
+    Please review this developer's task assignments and redistribute workload if necessary.<br/>
+    Alert generated at: <span th:text="${occurredAt}"></span>
+  </p>
+</body>
+</html>
