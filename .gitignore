@@ -19,6 +19,7 @@ build/
 cp.txt
 cookies.txt
 *.sh
+!k8s/**/*.sh
 
 # Antigravity CLI
 .antigravitycli/

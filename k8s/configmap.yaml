@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agile-config
+  namespace: agile-app
+data:
+  # General
+  RABBITMQ_HOST: "rabbitmq-service"
+  RABBITMQ_PORT: "5672"
+  
+  # Databases Hosts & Ports
+  POSTGRES_HOST: "postgres-service"
+  POSTGRES_PORT: "5432"
+  MONGO_HOST: "mongodb-service"
+  MONGO_PORT: "27017"
+  
+  # Database URLs for Hibernate / JPA
+  USER_DB_URL: "jdbc:postgresql://postgres-service:5432/agiledb"
+  PM_DB_URL: "jdbc:postgresql://postgres-service:5432/agiledb"
+  TASK_DB_URL: "jdbc:postgresql://postgres-service:5432/agiledb"
+  
+  # Mongo URIs
+  PM_MONGO_URI: "mongodb://mongodb-service:27017/agile_read?uuidRepresentation=STANDARD"
+  TASK_MONGO_URI: "mongodb://mongodb-service:27017/agile_tasks?uuidRepresentation=STANDARD"
+
+  # Internal Microservice Links
+  USER_SERVICE_URL: "http://user-service:8081"
+  TASK_SERVICE_URL: "http://task-service:8083"
+  NOTIFICATION_SERVICE_URL: "http://notification-service:8084"
+
+  # Mail Settings (Notification Service)
+  MAIL_HOST: "smtp.gmail.com"
+  MAIL_PORT: "587"
+  MAIL_FROM: "Agile Platform <your-email@gmail.com>"

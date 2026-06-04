@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pm-service
+  namespace: agile-app
+  labels:
+    app: pm-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pm-service
+  template:
+    metadata:
+      labels:
+        app: pm-service
+    spec:
+      containers:
+        - name: pm-service
+          image: pm-service:latest  # Change to your container registry path in CI/CD
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8082
+              name: http
+          env:
+            - name: SERVER_PORT
+              value: "8082"
+            - name: DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: agile-config
+                  key: PM_DB_URL
+            - name: DB_USERNAME
+              value: "pm_service_role"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: agile-secret
+                  key: PM_DB_PASSWORD
+            - name: MONGO_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: agile-config
+                  key: PM_MONGO_URI
+            - name: RABBITMQ_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: agile-config
+                  key: RABBITMQ_HOST
+            - name: RABBITMQ_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: agile-config
+                  key: RABBITMQ_PORT
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: agile-secret
+                  key: RABBITMQ_USERNAME
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: agile-secret
+                  key: RABBITMQ_PASSWORD
+            - name: USER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: agile-config
+                  key: USER_SERVICE_URL
+            - name: TASK_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: agile-config
+                  key: TASK_SERVICE_URL
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "384Mi"
+            limits:
+              cpu: "1"
+              memory: "768Mi"
+          livenessProbe:
+            tcpSocket:
+              port: 8082
+            initialDelaySeconds: 40
+            periodSeconds: 15
+          readinessProbe:
+            tcpSocket:
+              port: 8082
+            initialDelaySeconds: 25
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pm-service
+  namespace: agile-app
+  labels:
+    app: pm-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8082
+      targetPort: 8082
+      protocol: TCP
+      name: http
+  selector:
+    app: pm-service

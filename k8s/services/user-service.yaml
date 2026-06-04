@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: agile-app
+  labels:
+    app: user-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: user-service:latest  # Change to your container registry path in CI/CD (e.g. your-dockerhub-user/user-service:1.0.0)
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+              name: http
+          env:
+            - name: SERVER_PORT
+              value: "8081"
+            - name: DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: agile-config
+                  key: USER_DB_URL
+            - name: DB_USERNAME
+              value: "user_service_role"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: agile-secret
+                  key: USER_DB_PASSWORD
+            - name: APP_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: agile-secret
+                  key: JWT_SECRET
+            # The properties file uses spring.datasource.username, spring.datasource.password etc.
+            # We override them here via Spring Boot env-var mapping convention:
+            - name: SPRING_DATASOURCE_URL
+              value: "$(DB_URL)"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "$(DB_USERNAME)"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "$(DB_PASSWORD)"
+            - name: APP_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: agile-secret
+                  key: JWT_SECRET
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "384Mi"
+            limits:
+              cpu: "1"
+              memory: "768Mi"
+          livenessProbe:
+            tcpSocket:
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            tcpSocket:
+              port: 8081
+            initialDelaySeconds: 20
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: agile-app
+  labels:
+    app: user-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8081
+      targetPort: 8081
+      protocol: TCP
+      name: http
+  selector:
+    app: user-service
