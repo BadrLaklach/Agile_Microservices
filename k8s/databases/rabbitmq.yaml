@@ -58,15 +58,19 @@ spec:
               command:
                 - rabbitmq-diagnostics
                 - check_port_connectivity
-            initialDelaySeconds: 15
+            initialDelaySeconds: 30
             periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 6
           readinessProbe:
             exec:
               command:
                 - rabbitmq-diagnostics
                 - check_port_connectivity
-            initialDelaySeconds: 5
-            periodSeconds: 5
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 6
           volumeMounts:
             - name: rabbitmq-db-data
               mountPath: /var/lib/rabbitmq

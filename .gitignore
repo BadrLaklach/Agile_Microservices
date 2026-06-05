@@ -30,3 +30,7 @@ Thumbs.db
 
 # Ignore local docker-compose.yml with secrets
 docker-compose.yml
+
+# Kubernetes local configurations
+k8s/kubeconfig.yaml
+

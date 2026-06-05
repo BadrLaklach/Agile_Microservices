@@ -46,16 +46,20 @@ spec:
                 - mongosh
                 - --eval
                 - db.adminCommand('ping')
-            initialDelaySeconds: 15
+            initialDelaySeconds: 30
             periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 6
           readinessProbe:
             exec:
               command:
                 - mongosh
                 - --eval
                 - db.adminCommand('ping')
-            initialDelaySeconds: 5
-            periodSeconds: 5
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 6
           volumeMounts:
             - name: mongodb-db-data
               mountPath: /data/db
