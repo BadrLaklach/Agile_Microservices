@@ -132,7 +132,7 @@ services:
       MAIL_PASSWORD: "your_16_character_app_password" # Use a 16-character Google App Password
     depends_on:
       rabbitmq:
-        condition: service_healthcy
+        condition: service_healthy
   api-gateway:
     build:
       context: ./api_gateway
