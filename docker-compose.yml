@@ -51,6 +51,7 @@ services:
       timeout: 5s
       retries: 5
   user-service:
+    image: user-service:v2
     build:
       context: ./user_service
       dockerfile: Dockerfile
@@ -60,11 +61,13 @@ services:
       SERVER_PORT: 8081
       DB_URL: jdbc:postgresql://postgres:5432/agiledb
       DB_USERNAME: user_service_role
-      DB_PASSWORD: your_user_secret
+      DB_PASSWORD: user_secret
+      APP_JWT_SECRET: "this-is-a-very-long-secret-key-for-jwt-signing-and-verification-32-bytes"
     depends_on:
       postgres:
         condition: service_healthy
   pm-service:
+    image: pm-service:v2
     build:
       context: project_management_service
       dockerfile: Dockerfile
@@ -74,7 +77,7 @@ services:
       SERVER_PORT: 8082
       DB_URL: jdbc:postgresql://postgres:5432/agiledb
       DB_USERNAME: pm_service_role
-      DB_PASSWORD: your_pm_secret
+      DB_PASSWORD: pm_secret
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: guest
@@ -92,6 +95,7 @@ services:
       user-service:
         condition: service_started
   task-service:
+    image: task-service:v2
     build:
       context: ./task_service
       dockerfile: Dockerfile
@@ -101,7 +105,7 @@ services:
       SERVER_PORT: 8083
       DB_URL: jdbc:postgresql://postgres:5432/agiledb
       DB_USERNAME: task_service_role
-      DB_PASSWORD: your_task_secret
+      DB_PASSWORD: secret
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: guest
@@ -115,11 +119,10 @@ services:
       rabbitmq:
         condition: service_healthy
   notification-service:
+    image: notification-service:v2
     build:
       context: ./notification_service
       dockerfile: Dockerfile
-    ports:
-    - 8084:8084
     environment:
       SERVER_PORT: 8084
       RABBITMQ_HOST: rabbitmq
@@ -134,6 +137,7 @@ services:
       rabbitmq:
         condition: service_healthy
   api-gateway:
+    image: api-gateway:v2
     build:
       context: ./api_gateway
       dockerfile: Dockerfile
@@ -141,6 +145,7 @@ services:
     - 8080:8080
     environment:
       SERVER_PORT: 8080
+      APP_JWT_SECRET: "this-is-a-very-long-secret-key-for-jwt-signing-and-verification-32-bytes"
     depends_on:
     - user-service
     - pm-service

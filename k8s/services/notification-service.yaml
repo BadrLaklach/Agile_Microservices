@@ -17,11 +17,8 @@ spec:
     spec:
       containers:
         - name: notification-service
-          image: notification-service:latest  # Change to your container registry path in CI/CD
+          image: notification-service:v2  # Change to your container registry path in CI/CD
           imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 8084
-              name: http
           env:
             - name: SERVER_PORT
               value: "8084"
@@ -73,20 +70,3 @@ spec:
               cpu: "1"
               memory: "768Mi"
 
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: notification-service
-  namespace: agile-app
-  labels:
-    app: notification-service
-spec:
-  type: ClusterIP
-  ports:
-    - port: 8084
-      targetPort: 8084
-      protocol: TCP
-      name: http
-  selector:
-    app: notification-service

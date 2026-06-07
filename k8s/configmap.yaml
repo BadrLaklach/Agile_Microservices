@@ -26,7 +26,6 @@ data:
   # Internal Microservice Links
   USER_SERVICE_URL: "http://user-service:8081"
   TASK_SERVICE_URL: "http://task-service:8083"
-  NOTIFICATION_SERVICE_URL: "http://notification-service:8084"
 
   # Mail Settings (Notification Service)
   MAIL_HOST: "smtp.gmail.com"

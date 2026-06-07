@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: user-service:latest  # Change to your container registry path in CI/CD (e.g. your-dockerhub-user/user-service:1.0.0)
+          image: user-service:v2  # Change to your container registry path in CI/CD (e.g. your-dockerhub-user/user-service:1.0.0)
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
@@ -42,19 +42,7 @@ spec:
                 secretKeyRef:
                   name: agile-secret
                   key: JWT_SECRET
-            # The properties file uses spring.datasource.username, spring.datasource.password etc.
-            # We override them here via Spring Boot env-var mapping convention:
-            - name: SPRING_DATASOURCE_URL
-              value: "$(DB_URL)"
-            - name: SPRING_DATASOURCE_USERNAME
-              value: "$(DB_USERNAME)"
-            - name: SPRING_DATASOURCE_PASSWORD
-              value: "$(DB_PASSWORD)"
-            - name: APP_JWT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: agile-secret
-                  key: JWT_SECRET
+
           resources:
             requests:
               cpu: "100m"

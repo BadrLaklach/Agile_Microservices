@@ -90,7 +90,6 @@ All configuration is environment-aware, using the `${ENV_VAR:default}` pattern. 
 | `spring.rabbitmq.password` | `RABBITMQ_PASSWORD` | `guest` | RabbitMQ password. |
 | `app.user-service.url` | `USER_SERVICE_URL` | `http://localhost:8080` | Base URL of the User Service. |
 | `app.task-service.url` | `TASK_SERVICE_URL` | `http://localhost:8083` | Base URL of the Task Service. |
-| `app.notification-service.url` | `NOTIFICATION_SERVICE_URL` | `http://localhost:8084` | Base URL of the Notification Service. |
 
 ---
 
@@ -612,7 +611,6 @@ The PM Service consumes task lifecycle events published by the Task Service to m
 |---|---|---|---|
 | User Service `:8080` | `UserServiceClient` | HTTP GET | Verify user existence, hydrate member profiles |
 | Task Service `:8083` | `TaskServiceClient` | HTTP PATCH | Update task sprint assignment |
-| Notification Service | `NotificationServiceClient` | HTTP POST | Fire-and-forget notifications (e.g., member invited) |
 
 All inter-service calls forward `X-User-Id` and `X-User-Role` headers for downstream authentication.
 
@@ -757,7 +755,6 @@ project_management/
 │   ├── java/sahmoudi/agile/project_management/
 │   │   ├── ProjectManagementApplication.java
 │   │   ├── client/
-│   │   │   ├── NotificationServiceClient.java
 │   │   │   ├── TaskServiceClient.java
 │   │   │   └── UserServiceClient.java
 │   │   ├── config/
@@ -773,7 +770,6 @@ project_management/
 │   │   │   │   ├── CreateProjectRequest.java
 │   │   │   │   ├── CreateSprintRequest.java
 │   │   │   │   ├── InviteMemberRequest.java
-│   │   │   │   ├── NotificationRequest.java
 │   │   │   │   ├── UpdateProjectRequest.java
 │   │   │   │   ├── UpdateSprintRequest.java
 │   │   │   │   └── UpdateTaskSprintRequest.java

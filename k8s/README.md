@@ -73,16 +73,15 @@ sudo microk8s enable dns ingress
 ### 2. Building & Loading Rebuilt Images
 If you make code changes, rebuild the Docker images locally and import them directly into MicroK8s' containerd registry:
 ```bash
-# Rebuild the microservices (from repository root)
-mvn clean package -DskipTests
+# Build the Docker images (multi-stage Dockerfiles will compile the Java code internally)
 sudo docker compose build
 
 # Import the rebuilt host Docker images into containerd
-sudo docker save user-service:latest | sudo microk8s ctr images import -
-sudo docker save pm-service:latest | sudo microk8s ctr images import -
-sudo docker save task-service:latest | sudo microk8s ctr images import -
-sudo docker save notification-service:latest | sudo microk8s ctr images import -
-sudo docker save api-gateway:latest | sudo microk8s ctr images import -
+sudo docker save user-service:v2 | sudo microk8s ctr images import -
+sudo docker save pm-service:v2 | sudo microk8s ctr images import -
+sudo docker save task-service:v2 | sudo microk8s ctr images import -
+sudo docker save notification-service:v2 | sudo microk8s ctr images import -
+sudo docker save api-gateway:v2 | sudo microk8s ctr images import -
 ```
 
 ### 3. Deploying the Application
