@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: notification-service
-          image: notification-service:v2  # Change to your container registry path in CI/CD
+          image: notification-service:v3  # Change to your container registry path in CI/CD
           imagePullPolicy: IfNotPresent
           env:
             - name: SERVER_PORT
