@@ -8,64 +8,54 @@ Unlike traditional `curl` testing, Swagger provides a beautifully rendered web i
 
 ## 🏗️ Architecture Context
 
-Because the Agile Microservices are secured behind an **API Gateway** and an **Ingress Controller**, internal documentation routes (like `/swagger-ui.html`) are not exposed to the public internet for security reasons. 
+The Agile Microservices are secured behind an **API Gateway**, which acts as the single entry point for all traffic. To provide a seamless developer experience, the API Gateway automatically aggregates the Swagger documentation from all downstream microservices!
 
-To access these interfaces locally, we utilize **Kubernetes Port-Forwarding** to securely tunnel traffic from your local machine directly into the internal microservice pods.
+You no longer need to access each microservice individually. The Gateway provides a centralized dropdown dashboard.
 
-There are three microservices that expose REST APIs and have Swagger UI enabled:
-1. **User Service** (Port `8081`)
-2. **Project Management (PM) Service** (Port `8082`)
-3. **Task Service** (Port `8083`)
-
-*(Note: The API Gateway and Notification Service do not have Swagger UIs, as the Gateway is a router and the Notification Service is a headless RabbitMQ consumer).*
+To access the Gateway locally, we utilize **Kubernetes Port-Forwarding** to securely tunnel traffic from your local machine directly into the gateway pod.
 
 ---
 
-## 🚀 Step 1: Establish Secure Port-Forwards
+## 🚀 Step 1: Establish Secure Port-Forward
 
-Open a new terminal window. To access a service's Swagger UI, you must first open a tunnel to it.
+Open a new terminal window and establish a tunnel to the API Gateway:
 
-> **Pro-Tip:** If you want to test multiple services simultaneously, open a separate terminal tab for each command and let them run in the background.
-
-**To access the User Service (Authentication & Users):**
 ```bash
-kubectl port-forward svc/user-service -n agile-app 8081:8081
+kubectl port-forward svc/api-gateway -n agile-app 8080:8080
 ```
 
-**To access the PM Service (Projects & Sprints):**
-```bash
-kubectl port-forward svc/pm-service -n agile-app 8082:8082
-```
-
-**To access the Task Service (Tasks & Summaries):**
-```bash
-kubectl port-forward svc/task-service -n agile-app 8083:8083
-```
+*Leave this terminal window open and running in the background.*
 
 ---
 
-## 🌐 Step 2: Navigate to the Swagger Dashboard
+## 🌐 Step 2: Navigate to the Unified Swagger Dashboard
 
-Once your port-forward command is running and says `Forwarding from 127.0.0.1...`, open your favorite web browser and navigate to the corresponding URL:
+Once your port-forward command is running and says `Forwarding from 127.0.0.1...`, open your favorite web browser and navigate to:
 
-*   **User Service UI:** [http://localhost:8081/swagger-ui.html](http://localhost:8081/swagger-ui.html)
-*   **PM Service UI:** [http://localhost:8082/swagger-ui.html](http://localhost:8082/swagger-ui.html)
-*   **Task Service UI:** [http://localhost:8083/swagger-ui.html](http://localhost:8083/swagger-ui.html)
+[http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+
+In the top-right corner of the dashboard, you will see a **"Select a definition"** dropdown. You can use this to seamlessly switch between:
+1. **User Service** (Authentication & Users)
+2. **Project Management Service** (Projects & Sprints)
+3. **Task Service** (Tasks & Summaries)
+
+*(Note: The API Gateway itself and the headless Notification Service do not have public APIs of their own).*
 
 ---
 
 ## 🔐 Step 3: Obtain Your JWT Token
 
-Almost all endpoints in the Agile Microservices require a valid **JSON Web Token (JWT)**. You must generate this token in the **User Service** before testing the other services.
+Almost all endpoints in the Agile Microservices require a valid **JSON Web Token (JWT)**. You must generate this token via the User Service before testing the other endpoints.
 
-1. Navigate to the **User Service UI** (`http://localhost:8081/swagger-ui.html`).
+1. Select **User Service** from the top-right dropdown.
 2. Scroll down to the `auth-controller` section and click on the **`POST /api/v1/auth/login`** endpoint to expand it.
+   *(Alternatively, use `POST /api/v1/auth/register` to create a new user).*
 3. Click the **"Try it out"** button in the top right corner of the expanded panel.
 4. Modify the `Request body` with your credentials:
    ```json
    {
-     "email": "alice.manager@example.com",
-     "password": "SecurePassword123"
+     "email": "admin@agile.com",
+     "password": "securepassword123"
    }
    ```
 5. Click the large blue **"Execute"** button.
@@ -77,14 +67,14 @@ Almost all endpoints in the Agile Microservices require a valid **JSON Web Token
 
 Now that you have your JWT token, you need to tell Swagger to attach it to all your future requests automatically.
 
-1. At the very top of **ANY** Swagger UI page, look for the green **"Authorize 🔓"** button.
+1. At the very top of the Swagger UI page, look for the green **"Authorize 🔓"** button.
 2. Click the button. A modal window will appear.
 3. In the **`Value`** field under `bearerAuth`, **Paste** your JWT token.
 4. Click **Authorize**, and then click **Close**.
 
-> **Note:** The padlock icons next to the endpoints will now appear locked (🔒), indicating that Swagger will automatically inject your `Authorization: Bearer <token>` header into every request you make from this browser tab!
+> **Note:** The padlock icons next to the endpoints will now appear locked (🔒), indicating that Swagger will automatically inject your `Authorization: Bearer <token>` header into every request you make!
 >
-> *You must repeat this authorization step if you open a different service's Swagger UI in another tab.*
+> **Pro-Tip:** Because you are using the unified API Gateway, your authorization token persists even when you switch definitions in the top-right dropdown!
 
 ---
 
@@ -93,7 +83,7 @@ Now that you have your JWT token, you need to tell Swagger to attach it to all y
 With your token injected, you are fully authorized to test the ecosystem!
 
 ### Example: Creating a Project
-1. Ensure the **PM Service** is port-forwarded (`8082`) and you have clicked **"Authorize 🔓"** and pasted your token.
+1. Select **Project Management Service** from the top-right dropdown.
 2. Expand **`POST /api/v1/projects`**.
 3. Click **"Try it out"**.
 4. Fill in the JSON body:
@@ -109,11 +99,11 @@ With your token injected, you are fully authorized to test the ecosystem!
 6. Check the **Server response** for a `201 Created` status!
 
 ### Seamless Ecosystem Testing
-Because the microservices share the same underlying PostgreSQL databases and JWT secret keys, the data you create in one Swagger UI tab will immediately be recognized by the others. 
+Because the microservices share the same underlying PostgreSQL databases and JWT secret keys, the data you create in one service will immediately be recognized by the others. 
 
-*   Create a project in the **PM Service UI**.
+*   Create a project in the **PM Service**.
 *   Grab the returned `projectId`.
-*   Switch to the **Task Service UI**, paste that `projectId` into the `POST /api/v1/tasks` body, and create a task!
+*   Switch the dropdown to the **Task Service**, paste that `projectId` into the `POST /api/v1/tasks` body, and create a task!
 
 ---
 
