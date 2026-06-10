@@ -30,17 +30,37 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
+        String path = request.getURI().getPath();
+
+        // 0. Bypass authentication for Swagger UI and OpenAPI documentation
+        if (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs") || path.startsWith("/webjars")) {
+            return chain.filter(exchange);
+        }
 
         // 1. Reject requests that prematurely contain X-User-Id or X-User-Role headers
         if (request.getHeaders().containsKey("X-User-Id") || request.getHeaders().containsKey("X-User-Role")) {
             return sendProblemDetailResponse(exchange, HttpStatus.BAD_REQUEST, "Spoofing attempt: invalid headers present");
         }
 
-        HttpCookie cookie = request.getCookies().getFirst("accessToken");
+        String token = null;
+        List<String> authHeaders = request.getHeaders().get("Authorization");
+        if (authHeaders != null && !authHeaders.isEmpty()) {
+            String bearerToken = authHeaders.get(0);
+            if (bearerToken.startsWith("Bearer ")) {
+                token = bearerToken.substring(7);
+            }
+        }
+        
+        if (token == null) {
+            HttpCookie cookie = request.getCookies().getFirst("accessToken");
+            if (cookie != null) {
+                token = cookie.getValue();
+            }
+        }
+
         ServerHttpRequest modifiedRequest = request;
 
-        if (cookie != null) {
-            String token = cookie.getValue();
+        if (token != null) {
             if (!jwtUtil.isTokenValid(token)) {
                 return sendProblemDetailResponse(exchange, HttpStatus.UNAUTHORIZED, "Invalid or expired access token");
             }

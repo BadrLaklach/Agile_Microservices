@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: task-service
-          image: task-service:v5  # Change to your container registry path in CI/CD
+          image: task-service:v6  # Change to your container registry path in CI/CD
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8083

@@ -26,6 +26,12 @@ public class RequestHeaderAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
+        String path = request.getRequestURI();
+        if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui") || path.startsWith("/swagger-resources") || path.startsWith("/webjars")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String userIdHeader = request.getHeader("X-User-Id");
         String userRoleHeader = request.getHeader("X-User-Role");
 

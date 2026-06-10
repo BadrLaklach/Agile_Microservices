@@ -77,11 +77,11 @@ If you make code changes, rebuild the Docker images locally and import them dire
 sudo docker compose build
 
 # Import the rebuilt host Docker images into containerd
-sudo docker save user-service:v5 | sudo microk8s ctr images import -
-sudo docker save pm-service:v5 | sudo microk8s ctr images import -
-sudo docker save task-service:v5 | sudo microk8s ctr images import -
-sudo docker save notification-service:v5 | sudo microk8s ctr images import -
-sudo docker save api-gateway:v5 | sudo microk8s ctr images import -
+sudo docker save user-service:v6 | sudo microk8s ctr images import -
+sudo docker save pm-service:v6 | sudo microk8s ctr images import -
+sudo docker save task-service:v6 | sudo microk8s ctr images import -
+sudo docker save notification-service:v6 | sudo microk8s ctr images import -
+sudo docker save api-gateway:v6 | sudo microk8s ctr images import -
 ```
 
 ### 3. Deploying the Application
