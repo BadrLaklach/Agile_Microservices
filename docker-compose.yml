@@ -51,7 +51,7 @@ services:
       timeout: 5s
       retries: 5
   user-service:
-    image: user-service:v3
+    image: user-service:v4
     build:
       context: ./user_service
       dockerfile: Dockerfile
