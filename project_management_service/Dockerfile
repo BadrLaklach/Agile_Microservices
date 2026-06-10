@@ -9,6 +9,7 @@ RUN ./mvnw package -DskipTests -B
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
+RUN echo "Bypass cache v5"
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8082
 ENTRYPOINT ["java", "-jar", "app.jar"]

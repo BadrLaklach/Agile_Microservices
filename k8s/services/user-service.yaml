@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: user-service:v4  # Change to your container registry path in CI/CD (e.g. your-dockerhub-user/user-service:1.0.0)
+          image: user-service:v5  # Change to your container registry path in CI/CD (e.g. your-dockerhub-user/user-service:1.0.0)
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081

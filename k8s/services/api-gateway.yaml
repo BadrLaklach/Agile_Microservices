@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: api-gateway:v3  # Change to your container registry path in CI/CD
+          image: api-gateway:v5  # Change to your container registry path in CI/CD
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
