@@ -12,7 +12,7 @@ kubectl port-forward svc/api-gateway -n agile-app 8080:8080
 ```
 
 > **Note:** All requests in this guide are directed to `http://localhost:8080`, which is the entry point managed by the API Gateway.
-> **Important:** The microservices use `UUID`s for IDs. When running these commands, you MUST replace placeholder values (like `$ALICE_ID`, `$PROJECT_ID`) with the actual UUIDs returned in previous responses!
+> **Important:** The microservices use `UUID`s for IDs. When running these commands, you MUST replace placeholder values (like `$FATIMA_ID`, `$PROJECT_ID`) with the actual UUIDs returned in previous responses!
 
 ---
 
@@ -25,9 +25,9 @@ First, we need to create users and authenticate them to retrieve a JWT token, wh
 curl -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "firstName": "Alice",
+    "firstName": "Fatima",
     "lastName": "Manager",
-    "email": "alice.manager@example.com",
+    "email": "fatima.manager@example.com",
     "password": "SecurePassword123",
     "role": "PO"
   }'
@@ -38,9 +38,9 @@ curl -X POST http://localhost:8080/api/v1/auth/register \
 curl -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "firstName": "Bob",
+    "firstName": "Tariq",
     "lastName": "Developer",
-    "email": "bob.dev@example.com",
+    "email": "tariq.dev@example.com",
     "password": "SecurePassword123",
     "role": "DEV"
   }'
@@ -51,7 +51,7 @@ curl -X POST http://localhost:8080/api/v1/auth/register \
 curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "alice.manager@example.com",
+    "email": "fatima.manager@example.com",
     "password": "SecurePassword123"
   }'
 ```
@@ -65,13 +65,13 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
 curl -X GET http://localhost:8080/api/v1/users/me \
   -H "Authorization: Bearer $TOKEN"
 ```
-> **Action Required:** Note your `userId` (Alice) and Bob's `userId`. You will need to substitute `$ALICE_ID` and `$BOB_ID` below.
+> **Action Required:** Note your `userId` (Fatima) and Tariq's `userId`. You will need to substitute `$FATIMA_ID` and `$TARIQ_ID` below.
 
 ---
 
 ## Scenario 2: Project Management (PM Service)
 
-Alice (Product Owner) creates a new project and adds Bob to the team.
+Fatima (Product Owner) creates a new project and adds Tariq to the team.
 
 ### 2.1 Create a New Project
 ```bash
@@ -94,7 +94,7 @@ curl -X POST http://localhost:8080/api/v1/projects/$PROJECT_ID/members \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "bob.dev@example.com",
+    "email": "tariq.dev@example.com",
     "role": "DEV",
     "isNew": false
   }'
@@ -137,7 +137,7 @@ curl -X GET http://localhost:8080/api/v1/projects/$PROJECT_ID/sprints \
 
 ## Scenario 4: Task Execution (Task Service)
 
-Create a task, assign it to Bob, and add it to the Sprint.
+Create a task, assign it to Tariq, and add it to the Sprint.
 
 ### 4.1 Create a Task
 ```bash
@@ -151,7 +151,7 @@ curl -X POST http://localhost:8080/api/v1/tasks \
     "priority": "HIGH",
     "estimate": 5,
     "projectId": "'$PROJECT_ID'",
-    "assigneeId": "'$BOB_ID'"
+    "assigneeId": "'$TARIQ_ID'"
   }'
 ```
 > **Action Required:** Note the `id` from the response and export it as `$TASK_ID`.
@@ -169,7 +169,7 @@ curl -X PATCH http://localhost:8080/api/v1/tasks/$TASK_ID/sprint \
 ### 4.3 Update Task Status (Triggers RabbitMQ Notification)
 When the status is updated, the **Task Service** emits an event to **RabbitMQ**. The headless **Notification Service** will consume it and generate a notification/email asynchronously.
 ```bash
-# Bob moves the task to IN_PROGRESS
+# Tariq moves the task to IN_PROGRESS
 curl -X PATCH http://localhost:8080/api/v1/tasks/$TASK_ID/status \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
