@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: notification-service
-          image: notification-service:v6  # Change to your container registry path in CI/CD
+          image: agile_microservices_notification-service:latest  # Change to your container registry path in CI/CD
           imagePullPolicy: IfNotPresent
           env:
             - name: SERVER_PORT

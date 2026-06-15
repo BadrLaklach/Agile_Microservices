@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: pm-service
-          image: pm-service:v6  # Change to your container registry path in CI/CD
+          image: agile_microservices_pm-service:latest  # Change to your container registry path in CI/CD
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8082
